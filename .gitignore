@@ -1,0 +1,25 @@
+# .gitignore
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.eggs/
+
+# Environment
+.env
+.env/*
+
+# IDE - PyCharm
+.idea
+.idea/*
+
+# Logs
+logs/
+*.log
