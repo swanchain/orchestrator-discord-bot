@@ -1,6 +1,6 @@
 # db.py
 from sqlalchemy import create_engine
-from model import metadata
+from model.user import metadata
 from config import get_env
 from log.logger import error_logger
 
