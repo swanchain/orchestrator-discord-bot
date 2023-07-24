@@ -15,4 +15,4 @@ except Exception as e:
     exit(1)
 
 
-metadata.create_all(engine)  # 在数据库中创建表
+metadata.create_all(engine)
