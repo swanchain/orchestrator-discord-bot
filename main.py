@@ -2,6 +2,7 @@
 import discord
 
 from controller.bot_controller import BotController
+from db.connection import engine
 from log.logger import info_logger, error_logger
 
 import config
