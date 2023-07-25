@@ -20,7 +20,9 @@ Swan is a Discord bot developed using discord.py and SQLAlchemy. Its primary fun
 
 3. Create a `.env` file by following the `.env.example` file
 
-4. Run the bot
+4. Create a postgres database and fill in the database URL in the `.env` file
+
+5. Run the bot
 
     ``python main.py``
 
