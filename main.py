@@ -33,4 +33,3 @@ async def main():
 asyncio.run(main())
 
 # TODO: Update Readme file
-# TODO: Transfer tokens failed

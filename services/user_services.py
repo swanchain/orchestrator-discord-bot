@@ -47,7 +47,6 @@ class UserService:
         self.contract = self.web3.eth.contract(address=self.contract_address, abi=self.abi)
 
     async def _transfer(self, from_wallet_address, to_wallet_address, claimed_amount):
-        claimed_amount = int(claimed_amount)
         if not self.web3.is_address(to_wallet_address) or not self.web3.is_address(from_wallet_address):
             error_logger.error(f'Invalid wallet address. From: {from_wallet_address}, To: {to_wallet_address}')
             return
@@ -99,6 +98,7 @@ class UserService:
 
     async def transfer_and_record(self, discord_id, discord_name, from_wallet_address, to_wallet_address,
                                   claimed_amount):
+        claimed_amount = self.web3.to_wei(int(claimed_amount), 'ether')
         try:
             tx_hash = await self._transfer(from_wallet_address, to_wallet_address, claimed_amount)
 
