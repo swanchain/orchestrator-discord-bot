@@ -56,5 +56,10 @@ class BotController:
             info_logger.info(f'-- {ctx.author} is claiming {claimed_amount} tokens to {to_wallet_address}')
             tx_hash = await self.user_service.transfer_and_record(ctx.author.id, ctx.author.name, from_wallet_address,
                                                                   to_wallet_address, claimed_amount)
-            await ctx.reply(
-                f'Claimed {claimed_amount} tokens to {to_wallet_address}, your tx_hash is: {tx_hash}, you will receive it shortly.')
+            if tx_hash is None:
+                await ctx.reply(
+                    f'Failed to claim {claimed_amount} tokens to {to_wallet_address}, please try again later.')
+            else:
+                await ctx.reply(
+                    f'Claimed {claimed_amount} tokens to {to_wallet_address}, your tx_hash is: {tx_hash}, '
+                    f'you will receive it shortly.')

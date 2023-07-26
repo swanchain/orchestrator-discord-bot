@@ -6,7 +6,7 @@ from web3.middleware import geth_poa_middleware
 
 import config
 from log.logger import info_logger, error_logger
-from model.user import users
+from model.user import users, set_user_claim_info
 
 PRIVATE_KEY = config.get_env('PRIVATE_KEY')
 CONTRACT_ADDRESS = config.get_env('CONTRACT_ADDRESS')
@@ -43,33 +43,75 @@ class UserService:
             ],
             "stateMutability": "nonpayable",
             "type": "function"
+        }, {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "balanceOf",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         }]
         self.contract = self.web3.eth.contract(address=self.contract_address, abi=self.abi)
 
     async def _transfer(self, from_wallet_address, to_wallet_address, claimed_amount):
+        if self.contract is None:
+            error_logger.error(f'Contract is None')
+            return None
         if not self.web3.is_address(to_wallet_address) or not self.web3.is_address(from_wallet_address):
             error_logger.error(f'Invalid wallet address. From: {from_wallet_address}, To: {to_wallet_address}')
-            return
+            return None
+        if not self.web3.is_connected():
+            error_logger.error(f'Web3 is not connected')
+            return None
+
+        # check if the wallet has enough balance
+        balance = self.contract.functions.balanceOf(from_wallet_address).call()
+        if balance < claimed_amount:
+            error_logger.error(f'Insufficient balance. Balance: {balance}, Claimed amount: {claimed_amount}')
+            return None
+
+        # check if the wallet has enough gas
+        gas_price = self.web3.eth.gas_price
+        gas = self.contract.functions.transfer(to_wallet_address, claimed_amount).estimate_gas({
+            'from': from_wallet_address,
+            'gasPrice': gas_price,
+        })
+        gas_cost = gas * gas_price
+        if gas_cost > self.web3.eth.get_balance(from_wallet_address):
+            error_logger.error(
+                f'Insufficient gas. Gas: {gas_cost}, Balance: {self.web3.eth.get_balance(from_wallet_address)}')
+            return None
 
         account = self.web3.eth.account.from_key(self.private_key)
         nonce = self.web3.eth.get_transaction_count(account.address)
+
         try:
             info_logger.info(
                 f'-- Transferring {claimed_amount} LAD tokens to {to_wallet_address} at {datetime.utcnow()}')
             tx = self.contract.functions.transfer(to_wallet_address, claimed_amount).build_transaction({
                 'from': from_wallet_address,
                 'gas': 100000,
-                'gasPrice': self.web3.to_wei('10', 'gwei'),
+                'gasPrice': gas_price,
                 'nonce': nonce,
             })
             signed_tx = account.sign_transaction(tx)
             tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-
             # Wait for the transaction to be mined, and get the transaction receipt
             txn_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         except Exception as e:
             error_logger.error(f"Failed to transfer to {to_wallet_address} at {datetime.utcnow()}, error: {e}")
-            raise
+            return None
 
         info_logger.info(f'-- Transaction successful with transaction hash: {tx_hash.hex()} at {datetime.utcnow()}')
         info_logger.info(f'-- Transaction receipt: {txn_receipt}')
@@ -82,29 +124,26 @@ class UserService:
         async with self.engine.begin() as conn:
             info_logger.info(f'-- Recording transaction for {discord_name} at {datetime.utcnow()}...')
             try:
-                query = insert(users).values(discord_id=str(discord_id),
-                                             discord_name=discord_name,
-                                             from_wallet_address=from_wallet_address,
-                                             to_wallet_address=to_wallet_address,
-                                             last_claim_time=datetime.utcnow(),
-                                             claimed_amount=float(claimed_amount),
-                                             transaction_hash=str(tx_hash)
-                                             )
+                query = set_user_claim_info(str(discord_id), discord_name, from_wallet_address, to_wallet_address,
+                                            claimed_amount, tx_hash)
                 await conn.execute(query)
                 info_logger.info(f'-- Transaction recorded for {discord_name} at {datetime.utcnow()}')
+                return True
             except Exception as e:
                 error_logger.error(f"Failed to insert transaction: {e}")
-                raise
+                return False
 
     async def transfer_and_record(self, discord_id, discord_name, from_wallet_address, to_wallet_address,
                                   claimed_amount):
         claimed_amount = self.web3.to_wei(int(claimed_amount), 'ether')
-        try:
-            tx_hash = await self._transfer(from_wallet_address, to_wallet_address, claimed_amount)
 
-            await self._record_user_transaction(discord_id, discord_name, from_wallet_address, to_wallet_address,
-                                                claimed_amount, tx_hash)
-            return tx_hash
-        except Exception as e:
-            error_logger.error(f"Failed to transfer and record transaction: {e}")
-            raise
+        tx_hash = await self._transfer(from_wallet_address, to_wallet_address, claimed_amount)
+        if not tx_hash:
+            return None
+
+        is_success = await self._record_user_transaction(discord_id, discord_name, from_wallet_address,
+                                                         to_wallet_address,
+                                                         claimed_amount, tx_hash)
+        if not is_success:
+            return None
+        return tx_hash

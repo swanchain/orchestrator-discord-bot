@@ -2,7 +2,6 @@
 from datetime import datetime
 
 from sqlalchemy import inspect, create_engine
-from sqlalchemy.ext.asyncio import create_async_engine
 
 from model.user import metadata
 from config import get_env
