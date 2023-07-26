@@ -101,7 +101,7 @@ class UserService:
                 f'-- Transferring {claimed_amount} LAD tokens to {to_wallet_address} at {datetime.utcnow()}')
             tx = self.contract.functions.transfer(to_wallet_address, claimed_amount).build_transaction({
                 'from': from_wallet_address,
-                'gas': 100000,
+                'gas': gas,
                 'gasPrice': gas_price,
                 'nonce': nonce,
             })
