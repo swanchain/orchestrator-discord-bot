@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from config import get_env
 from log.logger import error_logger, info_logger
 
-DATABASE_URL = get_env('ASYNC_DATABASE_URL')
+DATABASE_URL = "postgresql+asyncpg://" + get_env('DATABASE_URL')
 
 
 async def connect_database() -> AsyncEngine:

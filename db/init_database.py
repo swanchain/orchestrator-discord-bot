@@ -7,7 +7,7 @@ from model.user import metadata
 from config import get_env
 from log.logger import error_logger, info_logger
 
-DATABASE_URL = get_env('SYNC_DATABASE_URL')
+DATABASE_URL = "postgresql://" + get_env('DATABASE_URL')
 
 
 def create_table():

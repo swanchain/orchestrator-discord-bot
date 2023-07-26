@@ -1,10 +1,12 @@
 # model.py
 from datetime import datetime
 
-from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, Float, insert
+from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, Float, insert, event, DDL
 
 metadata = MetaData(schema='discord_bot')
-
+event.listen(
+    metadata, 'before_create', DDL('CREATE SCHEMA IF NOT EXISTS discord_bot')
+)
 users = Table('users', metadata,
               Column('id', Integer, primary_key=True),
               Column('discord_id', String),
