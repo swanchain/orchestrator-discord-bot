@@ -1,8 +1,8 @@
 # model.py
 
-from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, Float, insert
+from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, Float
 
-metadata = MetaData()
+metadata = MetaData(schema='discord_bot')
 
 users = Table('users', metadata,
               Column('id', Integer, primary_key=True),
@@ -12,4 +12,5 @@ users = Table('users', metadata,
               Column('to_wallet_address', String),
               Column('last_claim_time', DateTime),
               Column('claimed_amount', Float),
+              Column('transaction_hash', String),
               )

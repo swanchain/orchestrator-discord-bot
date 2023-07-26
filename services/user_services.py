@@ -47,6 +47,7 @@ class UserService:
         self.contract = self.web3.eth.contract(address=self.contract_address, abi=self.abi)
 
     async def _transfer(self, from_wallet_address, to_wallet_address, claimed_amount):
+        claimed_amount = int(claimed_amount)
         if not self.web3.is_address(to_wallet_address) or not self.web3.is_address(from_wallet_address):
             error_logger.error(f'Invalid wallet address. From: {from_wallet_address}, To: {to_wallet_address}')
             return
@@ -54,7 +55,8 @@ class UserService:
         account = self.web3.eth.account.from_key(self.private_key)
         nonce = self.web3.eth.get_transaction_count(account.address)
         try:
-            info_logger.info(f'-- Transferring {claimed_amount} to {to_wallet_address} at {datetime.utcnow()}')
+            info_logger.info(
+                f'-- Transferring {claimed_amount} LAD tokens to {to_wallet_address} at {datetime.utcnow()}')
             tx = self.contract.functions.transfer(to_wallet_address, claimed_amount).build_transaction({
                 'from': from_wallet_address,
                 'gas': 100000,
@@ -67,37 +69,42 @@ class UserService:
             # Wait for the transaction to be mined, and get the transaction receipt
             txn_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         except Exception as e:
-            error_logger.error(e, f"Failed to transfer to {to_wallet_address} at {datetime.utcnow()}")
+            error_logger.error(f"Failed to transfer to {to_wallet_address} at {datetime.utcnow()}, error: {e}")
             raise
 
         info_logger.info(f'-- Transaction successful with transaction hash: {tx_hash.hex()} at {datetime.utcnow()}')
+        info_logger.info(f'-- Transaction receipt: {txn_receipt}')
         info_logger.info(
             f'-- Gas used: {txn_receipt["gasUsed"]} for transaction hash: {tx_hash.hex()} at {datetime.utcnow()}')
+        return tx_hash.hex()
 
     async def _record_user_transaction(self, discord_id, discord_name, from_wallet_address, to_wallet_address,
-                                       claimed_amount):
+                                       claimed_amount, tx_hash):
         async with self.engine.begin() as conn:
             info_logger.info(f'-- Recording transaction for {discord_name} at {datetime.utcnow()}...')
             try:
-                query = insert(users).values(discord_id=discord_id,
+                query = insert(users).values(discord_id=str(discord_id),
                                              discord_name=discord_name,
                                              from_wallet_address=from_wallet_address,
                                              to_wallet_address=to_wallet_address,
                                              last_claim_time=datetime.utcnow(),
-                                             claimed_amount=claimed_amount)
+                                             claimed_amount=float(claimed_amount),
+                                             transaction_hash=str(tx_hash)
+                                             )
                 await conn.execute(query)
                 info_logger.info(f'-- Transaction recorded for {discord_name} at {datetime.utcnow()}')
             except Exception as e:
-                error_logger.error(e, "Failed to insert transaction")
+                error_logger.error(f"Failed to insert transaction: {e}")
                 raise
 
     async def transfer_and_record(self, discord_id, discord_name, from_wallet_address, to_wallet_address,
                                   claimed_amount):
         try:
-            await self._transfer(from_wallet_address, to_wallet_address, claimed_amount)
+            tx_hash = await self._transfer(from_wallet_address, to_wallet_address, claimed_amount)
 
             await self._record_user_transaction(discord_id, discord_name, from_wallet_address, to_wallet_address,
-                                                claimed_amount)
+                                                claimed_amount, tx_hash)
+            return tx_hash
         except Exception as e:
-            error_logger.error(e, "Failed to transfer and record")
+            error_logger.error(f"Failed to transfer and record transaction: {e}")
             raise
