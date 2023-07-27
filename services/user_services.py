@@ -1,25 +1,24 @@
 from datetime import datetime
 
-from sqlalchemy import insert
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
-import config
 from log.logger import info_logger, error_logger
-from model.user import users, set_user_claim_info
-
-PRIVATE_KEY = config.get_env('PRIVATE_KEY')
-CONTRACT_ADDRESS = config.get_env('CONTRACT_ADDRESS')
-RPC_ENDPOINT = config.get_env('RPC_ENDPOINT')
+from model.user import set_user_claim_info
 
 
 class UserService:
-    def __init__(self, engine):
+    def __init__(self, engine, config_manager):
+        self.config_manager = config_manager
+        self.private_key = self.config_manager.get_env('PRIVATE_KEY')
+        self.contract_address = self.config_manager.get_env('CONTRACT_ADDRESS')
+        self.rpc_endpoint = self.config_manager.get_env('RPC_ENDPOINT')
         self.engine = engine
-        self.web3 = Web3(Web3.HTTPProvider(RPC_ENDPOINT))
+        print(self.rpc_endpoint, self.private_key, self.contract_address)
+        self.web3 = Web3(Web3.HTTPProvider(self.rpc_endpoint))
         self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        self.private_key = PRIVATE_KEY
-        self.contract_address = CONTRACT_ADDRESS
+        self.private_key = self.private_key
+        self.contract_address = self.contract_address
         self.abi = [{
             "inputs": [
                 {

@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  bot:
+    build: .
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: swan:swanDiscord@db:5432/swan
+
+  db:
+    image: postgres:14
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: swan
+      POSTGRES_PASSWORD: swanDiscord
+      POSTGRES_DB: swan
+      POSTGRES_MULTIPLE_SCHEMAS: "public,discord_bot"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres_data:

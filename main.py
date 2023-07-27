@@ -7,24 +7,22 @@ from discord.ext.commands import Bot
 from controller.bot_controller import BotController
 from db import connection, init_database
 from log.logger import error_logger
-
-import config
+from services.config_services import ConfigManager, set_all_config
 from services.user_services import UserService
-
-BOT_TOKEN = config.get_env('BOT_TOKEN')
-BOT_GUILD = config.get_env('BOT_GUILD')
 
 
 async def main():
     init_database.create_table()
+    engine = await connection.connect_database()
+    config_manager = await ConfigManager.create(engine)
     intents = discord.Intents.all()
     client = Bot(command_prefix="$", intents=intents)
-    engine = await connection.connect_database()
-    user_service = UserService(engine)
-    BotController(client, user_service)
+    bot_token = config_manager.get_env('BOT_TOKEN')
+    user_service = UserService(engine, config_manager)
+    BotController(client, user_service, config_manager)
 
     try:
-        await client.start(BOT_TOKEN)
+        await client.start(bot_token)
     except Exception as e:
         error_logger.error(f"Bot connection failed: {e}")
         exit(1)
