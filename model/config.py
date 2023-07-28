@@ -1,42 +1,28 @@
-# model/config.py
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Boolean, Column, Integer, String
 
-from sqlalchemy import Table, Column, String, MetaData, insert, Boolean
-
-metadata = MetaData(schema='discord_bot')
-
-config = Table('config', metadata,
-               Column('key', String, primary_key=True),
-               Column('value', String),
-               Column('is_active', Boolean)
-               )
+Base = declarative_base()
 
 
-# insert config
-def set_config(key: str, value: str, is_active: bool):
-    query = insert(config).values(
-        key=key,
-        value=value,
-        is_active=is_active
-    )
-    return query
+class Config(Base):
+    __tablename__ = "config"
+    __schema__ = "discord_bot"
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String)
+    value = Column(String)
+    is_active = Column(Boolean)
 
 
 # get config by key
-def get_config(key: str):
-    query = config.select().where(config.c.key == key)
-    return query
+async def get_config(session: AsyncSession, key: str):
+    result = await session.execute(select(Config).where(Config.key == key))
+    return result.scalars().first()
 
 
 # get all config that is active
-def get_all_active_config():
-    query = config.select().where(config.c.is_active is True)
-    return query
-
-
-# update config
-def update_config(key: str, value: str, is_active: bool):
-    query = config.update().where(config.c.key == key).values(
-        value=value,
-        is_active=str(is_active)
-    )
-    return query
+async def get_all_active_config(session: AsyncSession):
+    result = await session.execute(select(Config).where(Config.is_active == True))
+    return result.scalars().all()

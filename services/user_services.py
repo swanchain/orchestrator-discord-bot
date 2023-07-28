@@ -5,16 +5,15 @@ from web3.middleware import geth_poa_middleware
 
 from log.logger import info_logger, error_logger
 from model.user import set_user_claim_info
+from db.init_database import config_manager
 
 
 class UserService:
-    def __init__(self, engine, config_manager):
-        self.config_manager = config_manager
-        self.private_key = self.config_manager.get_env('PRIVATE_KEY')
-        self.contract_address = self.config_manager.get_env('CONTRACT_ADDRESS')
-        self.rpc_endpoint = self.config_manager.get_env('RPC_ENDPOINT')
+    def __init__(self, engine):
+        self.private_key = config_manager.get_env('PRIVATE_KEY')
+        self.contract_address = config_manager.get_env('CONTRACT_ADDRESS')
+        self.rpc_endpoint = config_manager.get_env('RPC_ENDPOINT')
         self.engine = engine
-        print(self.rpc_endpoint, self.private_key, self.contract_address)
         self.web3 = Web3(Web3.HTTPProvider(self.rpc_endpoint))
         self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         self.private_key = self.private_key

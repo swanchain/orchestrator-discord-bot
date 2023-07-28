@@ -2,9 +2,9 @@
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from log.logger import error_logger, info_logger
-from services.config_services import get_env_from_file
+from services import config_services
 
-DATABASE_URL = "postgresql+asyncpg://" + get_env_from_file('DATABASE_URL')
+DATABASE_URL = "postgresql+asyncpg://" + config_services.get_env_from_file('DATABASE_URL')
 
 
 async def connect_database() -> AsyncEngine:

@@ -3,13 +3,12 @@ import discord
 from log.logger import info_logger, error_logger
 from web3 import Web3
 
-from services.config_services import ConfigManager
+from db.init_database import config_manager
 from services.user_services import UserService
 
 
 class BotController:
-    def __init__(self, client, user_service: UserService, config_manager: ConfigManager):
-        self.config_manager = config_manager
+    def __init__(self, client, user_service: UserService):
         self.bot_guild = config_manager.get_env('BOT_GUILD')
         self.from_wallet_address = config_manager.get_env('FROM_WALLET_ADDRESS')
         self.claimed_amount = config_manager.get_env('CLAIMED_AMOUNT')
