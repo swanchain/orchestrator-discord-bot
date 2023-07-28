@@ -1,27 +1,25 @@
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Boolean, Column, Integer, String
+from datetime import datetime
 
-Base = declarative_base()
+from sqlalchemy import Table, Column, Integer, String, MetaData, Boolean, select, event, DDL
 
+metadata = MetaData(schema='discord_bot')
+event.listen(
+    metadata, 'before_create', DDL('CREATE SCHEMA IF NOT EXISTS discord_bot')
+)
 
-class Config(Base):
-    __tablename__ = "config"
-    __schema__ = "discord_bot"
-    id = Column(Integer, primary_key=True, index=True)
-    key = Column(String)
-    value = Column(String)
-    is_active = Column(Boolean)
-
-
-# get config by key
-async def get_config(session: AsyncSession, key: str):
-    result = await session.execute(select(Config).where(Config.key == key))
-    return result.scalars().first()
+config = Table('config', metadata,
+               Column('id', Integer, primary_key=True),
+               Column('key', String),
+               Column('value', String),
+               Column('is_active', Boolean),
+               )
 
 
-# get all config that is active
-async def get_all_active_config(session: AsyncSession):
-    result = await session.execute(select(Config).where(Config.is_active == True))
-    return result.scalars().all()
+def get_config(key: str):
+    query = select(config).where(config.c.key == key)
+    return query
+
+
+def get_all_active_config():
+    query = select(config).where(config.c.is_active == True)
+    return query

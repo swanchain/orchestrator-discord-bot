@@ -2,17 +2,17 @@ import discord
 
 from log.logger import info_logger, error_logger
 from web3 import Web3
-
-from db.init_database import config_manager
+from model.config import get_config
+# from db.init_database import config_manager
 from services.user_services import UserService
 
 
 class BotController:
     def __init__(self, client, user_service: UserService):
-        self.bot_guild = config_manager.get_env('BOT_GUILD')
-        self.from_wallet_address = config_manager.get_env('FROM_WALLET_ADDRESS')
-        self.claimed_amount = config_manager.get_env('CLAIMED_AMOUNT')
-        self.channel_id = config_manager.get_env('CHANNEL_ID')
+        self.bot_guild = get_config('BOT_GUILD')
+        self.from_wallet_address = get_config('FROM_WALLET_ADDRESS')
+        self.claimed_amount = get_config('CLAIMED_AMOUNT')
+        self.channel_id = get_config('CHANNEL_ID')
         self.client = client
         self.user_service = user_service
         self.register_events()
