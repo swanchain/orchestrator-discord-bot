@@ -1,23 +1,32 @@
 # bot.py
+import asyncio
+
 import discord
+from discord.ext.commands import Bot
 
 from controller.bot_controller import BotController
-from db.connection import engine
-from log.logger import info_logger, error_logger
-
-import config
+from db import connection, init_database
+from log.logger import error_logger
+from db.init_database import config_manager
 from services.user_services import UserService
 
-BOT_TOKEN = config.get_env('BOT_TOKEN')
-BOT_GUILD = config.get_env('BOT_GUILD')
 
-intents = discord.Intents.all()
-client = discord.Client(intents=intents)
-user_service = UserService(engine)
-bot_controller = BotController(client, user_service)
+async def main():
+    init_database.create_table()
+    engine = await connection.connect_database()
+    intents = discord.Intents.all()
+    client = Bot(command_prefix="$", intents=intents)
+    bot_token = config_manager.get_env(key='BOT_TOKEN')
+    user_service = UserService(engine)
+    BotController(client, user_service)
 
-try:
-    client.run(BOT_TOKEN)
-except Exception as e:
-    error_logger.error(e, "Bot connection failed")
-    exit(1)
+    try:
+        await client.start(bot_token)
+    except Exception as e:
+        error_logger.error(f"Bot connection failed: {e}")
+        exit(1)
+
+
+asyncio.run(main())
+
+# TODO: Update Readme file

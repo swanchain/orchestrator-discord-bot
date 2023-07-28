@@ -1,18 +1,26 @@
 # db.py
-from sqlalchemy import create_engine
-from model.user import metadata
-from config import get_env
-from log.logger import error_logger
+from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from log.logger import error_logger, info_logger
+from services import config_services
 
-DATABASE_URL = get_env('DATABASE_URL')
-
-engine = create_engine(DATABASE_URL)
-
-try:
-    engine.connect()
-except Exception as e:
-    error_logger.error(e, "Database connection failed")
-    exit(1)
+DATABASE_URL = "postgresql+asyncpg://" + config_services.get_env_from_file('DATABASE_URL')
 
 
-metadata.create_all(engine)
+async def connect_database() -> AsyncEngine:
+    """
+    Connect to the database asynchronously and return the engine.
+    :return: AsyncEngine
+    """
+    info_logger.info(f'-- Connecting to database at {DATABASE_URL} at {datetime.utcnow()}')
+    try:
+        engine = create_async_engine(DATABASE_URL)
+        if not engine:
+            error_logger.error(f"Database connection failed: {DATABASE_URL}")
+            exit(1)
+        else:
+            info_logger.info(f'-- Connected to database at {datetime.utcnow()}')
+    except Exception as e:
+        error_logger.error(f"Database connection failed: {e}")
+        exit(1)
+    return engine

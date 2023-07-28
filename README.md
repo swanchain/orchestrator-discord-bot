@@ -10,23 +10,27 @@ Swan is a Discord bot developed using discord.py and SQLAlchemy. Its primary fun
 ## Installation
 
 1. Clone this repository
-
-``[git clone https://github.com/your_username/swan-discord-bot.git](https://github.com/filswan/swan-discord-bot.git)``
+    
+    ``git clone https://github.com/filswan/swan-discord-bot.git``
 
 2. Install dependencies
 
-``pip install -r requirements.txt``
-``pip install python-dotenv``
+    ``pip install -r requirements.txt``
+    ``pip install python-dotenv``
 
-3. Create a `.env` file by following the .env.example
+3. Create a `.env` file by following the `.env.example` file
 
-4. Run the bot
+4. Change the config in config_services.py (set_all_config function)
 
-``python main.py``
+5. Create a postgres database and fill in the database URL in the `.env` file
+
+6. Run the bot
+
+    ``python main.py``
 
 ## Usage
 
-Type the command `!claim` in Discord to claim test coins. Each user is allowed to claim once every six hours.
+Type the command `$claim` in Discord to claim test coins. Each user is allowed to claim once every six hours.
 
 ## License
 
