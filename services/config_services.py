@@ -52,24 +52,24 @@ class ConfigManager:
         try:
             session.merge(
                 Config(key='BOT_TOKEN',
-                       value='MTEzMzU5Nzc4MTExNDc2OTQ5MA.GxTU1m.CAIZnG6SHmaHm4m3HI421TKdx6QcRkJ4XvNlX0',
+                       value='bot_token(str)',
                        is_active=True))
-            session.merge(Config(key='BOT_GUILD', value='PTS', is_active=True))
+            session.merge(Config(key='BOT_GUILD', value='bot_guild(str)', is_active=True))
             session.merge(
-                Config(key='FROM_WALLET_ADDRESS', value='0x29eD49c8E973696D07E7927f748F6E5Eacd5516D',
+                Config(key='FROM_WALLET_ADDRESS', value='from_wallet_address(str)',
                        is_active=True))
-            session.merge(Config(key='CLAIMED_AMOUNT', value='1500', is_active=True))
+            session.merge(Config(key='CLAIMED_AMOUNT', value='claimed_amount(int)', is_active=True))
             session.merge(
                 Config(key='PRIVATE_KEY',
-                       value='895bcb462f77386e68b726666ee9a026ad87078086aa0e5c64f681a090c8265a',
+                       value='private_key(str)',
                        is_active=True))
             session.merge(
-                Config(key='CONTRACT_ADDRESS', value='0x3CF24790B3af64029564E81B67aF299dB83Fd9e3',
+                Config(key='CONTRACT_ADDRESS', value='contract_address(str)',
                        is_active=True))
             session.merge(
-                Config(key='RPC_ENDPOINT', value='https://polygon-testnet-archive.allthatnode.com:8545',
+                Config(key='RPC_ENDPOINT', value='rpc_endpoint(str)',
                        is_active=True))
-            session.merge(Config(key='CHANNEL_ID', value='1133939349763915876', is_active=True))
+            session.merge(Config(key='CHANNEL_ID', value='channel_id(int)', is_active=True))
             session.commit()
 
         except Exception as e:
