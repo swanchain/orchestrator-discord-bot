@@ -18,7 +18,6 @@ def _load_env_file(env_file_path='.env'):
 def get_env_from_file(key, env_file_path='.env'):
     _load_env_file(env_file_path)
     value = os.getenv(key)
-    print(value)
     if value is None:
         error_logger.error(f'Environment variable {key} not found.')
         raise KeyError(f'Environment variable {key} not found.')
@@ -29,7 +28,6 @@ class ConfigManager:
     def __init__(self, engine: Engine):
         self.engine = engine
         self.session = sessionmaker(self.engine)
-        self.set_all_config()
 
     def get_all_active_config(self) -> dict:
         with self.session() as session:
