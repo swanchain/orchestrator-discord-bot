@@ -41,6 +41,8 @@ class ConfigManager:
             except Exception as e:
                 error_logger.error(f"Get all active config failed: {e}")
                 exit(1)
+            finally:
+                session.close()
         return config_dict
 
     def get_env(self, key):
