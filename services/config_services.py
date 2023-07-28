@@ -18,11 +18,11 @@ def _load_env_file(env_file_path='.env'):
 def get_env_from_file(key, env_file_path='.env'):
     _load_env_file(env_file_path)
     value = os.getenv(key)
-    print(value)
     if value is None:
         error_logger.error(f'Environment variable {key} not found.')
         raise KeyError(f'Environment variable {key} not found.')
     return value
+
 
 
 # class ConfigManager:
@@ -80,3 +80,4 @@ def get_env_from_file(key, env_file_path='.env'):
 #     #         raise e
 #     #     finally:
 #     #         session.close()
+
