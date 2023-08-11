@@ -5,20 +5,24 @@ import discord
 from discord.ext.commands import Bot
 
 from controller.bot_controller import BotController
-from db import connection, init_database
+from db.connection import connect_database
+from db.session_manager import AsyncSessionManager
 from log.logger import error_logger
 from services.user_services import UserService
 from model.config import get_config
 
 
 async def main():
-    # init_database.create_table()
-    engine = await connection.connect_database()
+    engine = await connect_database()
+    AsyncSessionManager(engine)
     intents = discord.Intents.all()
     client = Bot(command_prefix="$", intents=intents)
-    bot_token = get_config(key='BOT_TOKEN')
+    bot_token = await get_config(key='BOT_TOKEN')
+    if bot_token is None or not isinstance(bot_token, str):
+        error_logger.error(f"Bot token is not set or invalid")
+        exit(1)
     user_service = UserService(engine)
-    BotController(client, user_service)
+    await BotController.create(client, user_service)
 
     try:
         await client.start(bot_token)
