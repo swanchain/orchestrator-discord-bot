@@ -59,6 +59,7 @@ class BotController:
                     error_logger.error(f"Received invalid wallet address: {to_wallet_address}")
                     await ctx.reply('Invalid wallet address')
                     return
+                await ctx.reply(f'Your claim is being processed. Please wait...')
                 from_wallet_address = await get_config('FROM_WALLET_ADDRESS')
                 claimed_amount = await get_config('CLAIMED_AMOUNT')
                 info_logger.info(f'-- {ctx.author} is claiming {claimed_amount} LAG to {to_wallet_address}')
