@@ -52,9 +52,12 @@ class UserService:
             "type": "function"
         }]
 
-    async def _transfer(self, from_wallet_address, to_wallet_address, claimed_amount):
+    async def _transfer(self, from_wallet_address, to_wallet_address, claimed_amount, is_test=False):
         web3 = Web3(Web3.HTTPProvider(await get_config('RPC_ENDPOINT')))
-        contract_address = await get_config('CONTRACT_ADDRESS')
+        if is_test:
+            contract_address = await get_config('LLL_CONTRACT_ADDRESS')
+        else:
+            contract_address = await get_config('LAG_CONTRACT_ADDRESS')
         contract = web3.eth.contract(address=contract_address, abi=self.abi)
         if contract is None:
             error_logger.error(f'Contract is None')
@@ -126,11 +129,11 @@ class UserService:
                 return False
 
     async def transfer_and_record(self, discord_id, discord_name, from_wallet_address, to_wallet_address,
-                                  claimed_amount, token_symbol):
+                                  claimed_amount, token_symbol, is_test=False):
         web3 = Web3(Web3.HTTPProvider(await get_config('RPC_ENDPOINT')))
         claimed_amount = web3.to_wei(claimed_amount, 'ether')
 
-        tx_hash = await self._transfer(from_wallet_address, to_wallet_address, claimed_amount)
+        tx_hash = await self._transfer(from_wallet_address, to_wallet_address, claimed_amount, is_test)
         if not tx_hash:
             return None
 
