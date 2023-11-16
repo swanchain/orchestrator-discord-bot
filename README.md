@@ -30,7 +30,7 @@ Swan is a Discord bot developed using discord.py and SQLAlchemy. Its primary fun
 
 ## Usage
 
-Type the command `$claim` in Discord to claim test coins. Each user is allowed to claim once every six hours.
+Type the command `$lag_faucet` or `$swan_usdc_faucet` in Discord to claim test coins. Each user is allowed to claim once every six hours.
 
 ## License
 
