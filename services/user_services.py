@@ -9,7 +9,7 @@ from model.user import set_user_claim_info
 class UserService:
     def __init__(self, engine):
         self.engine = engine
-        self.abi = [{
+        self.common_abi = [{
             "inputs": [
                 {
                     "internalType": "address",
@@ -52,13 +52,13 @@ class UserService:
             "type": "function"
         }]
 
-    async def _transfer(self, from_wallet_address, to_wallet_address, claimed_amount, is_test=False):
-        web3 = Web3(Web3.HTTPProvider(await get_config('RPC_ENDPOINT')))
-        if is_test:
-            contract_address = await get_config('LLL_CONTRACT_ADDRESS')
-        else:
-            contract_address = await get_config('LAG_CONTRACT_ADDRESS')
-        contract = web3.eth.contract(address=contract_address, abi=self.abi)
+    async def _transfer(self, network,from_wallet_address, to_wallet_address, claimed_amount, is_test=False):
+        rpc_endpoint_key = f'{network}_{"TEST" if is_test else ""}_RPC_ENDPOINT'
+        web3 = Web3(Web3.HTTPProvider(await get_config(rpc_endpoint_key)))
+
+        contract_key = f'{network}_{"TEST" if is_test else ""}_CONTRACT_ADDRESS'
+        contract_address = await get_config(contract_key)
+        contract = web3.eth.contract(address=contract_address, abi=self.common_abi)
         if contract is None:
             error_logger.error(f'Contract is None')
             return None
@@ -93,7 +93,7 @@ class UserService:
 
         try:
             info_logger.info(
-                f'-- Transferring {claimed_amount} LAD tokens to {to_wallet_address} at {datetime.utcnow()}')
+                f'-- Transferring {claimed_amount} tokens to {to_wallet_address} at {datetime.utcnow()}')
             tx = contract.functions.transfer(to_wallet_address, claimed_amount).build_transaction({
                 'from': from_wallet_address,
                 'gas': gas,
@@ -128,18 +128,21 @@ class UserService:
                 error_logger.error(f"Failed to insert transaction: {e}")
                 return False
 
-    async def transfer_and_record(self, discord_id, discord_name, from_wallet_address, to_wallet_address,
+    async def transfer_and_record(self, discord_id, discord_name, network, from_wallet_address, to_wallet_address,
                                   claimed_amount, token_symbol, is_test=False):
-        web3 = Web3(Web3.HTTPProvider(await get_config('RPC_ENDPOINT')))
-        claimed_amount = web3.to_wei(claimed_amount, 'ether')
+        web3 = Web3(Web3.HTTPProvider(await get_config(f'{network}__{"TEST" if is_test else ""}_RPC_ENDPOINT')))
+        if network == 'OPSWAN':
+            claimed_amount = web3.to_wei(claimed_amount, 'mwei')
+        else:
+            claimed_amount = web3.to_wei(claimed_amount, 'ether')
 
-        tx_hash = await self._transfer(from_wallet_address, to_wallet_address, claimed_amount, is_test)
+        tx_hash = await self._transfer(network, from_wallet_address, to_wallet_address, claimed_amount, is_test)
         if not tx_hash:
             return None
 
         is_success = await self._record_user_transaction(discord_id, discord_name, from_wallet_address,
-                                                         to_wallet_address,
-                                                         claimed_amount, tx_hash, token_symbol)
+                                                         to_wallet_address, claimed_amount, tx_hash, token_symbol)
         if not is_success:
             return None
         return tx_hash
+
