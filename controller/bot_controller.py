@@ -44,18 +44,25 @@ class BotController:
 
         @self.client.command(name='lag_faucet', help='Claim tokens from the faucet')
         async def claim_polygon(ctx):
-            await self._process_claim_request(ctx, 'POLYGON', 'LAG')
+            channel_id = await get_config('LAG_CHANNEL_ID')
+            await self._process_claim_request(ctx, 'POLYGON', 'LAG', False, channel_id)
 
         @self.client.command(name='swan_usdc_faucet', help='Claim tokens from the faucet')
         async def claim_op(ctx):
-            await self._process_claim_request(ctx, 'OPSWAN', 'OPSWAN_TEST_USDC', True)
+            channel_id = await get_config('SWAN_TEST_CHANNEL_ID')
+            await self._process_claim_request(ctx, 'OPSWAN', 'OPSWAN_TEST_USDC', True, channel_id)
 
-    async def _process_claim_request(self, ctx, network, token_symbol, is_test=False):
+    async def _process_claim_request(self, ctx, network, token_symbol, is_test=False, channel_id=None):
         async with self.semaphore:
-            channel_id = await get_config('CHANNEL_ID')
+            if channel_id is None:
+                error_logger.error(f"Channel id is not set")
+                await ctx.reply('Source error, please contact admin.')
+                return
             if ctx.channel.id != int(channel_id):
                 error_logger.error(f"Received invalid channel id: {ctx.channel.id}")
-                await ctx.reply('Invalid channel id')
+                await ctx.reply(
+                    'Invalid channel id, if you are trying to get the swan-test-usdc, please use usdc-faucet channel, '
+                    'if you are trying to get the lag token, please use lag-faucet channel. ')
                 return
             to_wallet_address = ctx.message.content.split()[-1]
             if to_wallet_address == '' or not Web3.is_address(to_wallet_address):
