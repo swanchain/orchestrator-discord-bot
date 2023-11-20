@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, Integer, String, MetaData, select, event, DDL
+from sqlalchemy import Table, Column, Integer, String, MetaData, select, event, DDL, and_
 from db.session_manager import AsyncSessionManager
 from log.logger import error_logger
 
@@ -19,26 +19,12 @@ async def get_config(key: str):
     async_session_manager = AsyncSessionManager()
     session = async_session_manager.get_session()
     try:
-        query = select(config).where(config.c.key == key)
+        query = select(config).where(and_(config.c.key == key, config.c.is_active == 1))
         result = await session.execute(query)
         row = result.fetchone()
         return row[2] if row else None
     except Exception as e:
         error_logger.error(f"Error in get_config: {e}")
-        return None
-    finally:
-        await session.close()
-
-
-async def get_all_active_config():
-    async_session_manager = AsyncSessionManager()
-    session = async_session_manager.get_session()
-    try:
-        query = select(config).where(config.c.is_active is True)
-        result = await session.execute(query)
-        return result
-    except Exception as e:
-        error_logger.error(f"Error in get_all_active_config: {e}")
         return None
     finally:
         await session.close()

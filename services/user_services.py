@@ -55,6 +55,7 @@ class UserService:
     async def _transfer(self, network, token_name, from_wallet_address, to_wallet_address, claimed_amount, is_test=False):
         rpc_endpoint_key = f'{network}_{"TEST_" if is_test else ""}RPC_ENDPOINT'
         web3 = Web3(Web3.HTTPProvider(await get_config(rpc_endpoint_key)))
+        print(await get_config(rpc_endpoint_key))
 
         contract_key = f'{token_name}_{"TEST_" if is_test else ""}CONTRACT_ADDRESS'
         contract_address = await get_config(contract_key)

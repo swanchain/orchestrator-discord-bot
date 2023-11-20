@@ -50,7 +50,6 @@ class BotController:
         @self.client.command(name='pusdc_faucet', help='Claim Polygon USDC tokens from the faucet')
         async def claim_polygon(ctx):
             channel_id = await get_config('POLYGON_USDC_CHANNEL_ID')
-            print(channel_id)
             await self._process_claim_request(ctx, 'POLYGON', 'POLYGON_USDC', 'POLYGON_TEST_USDC', False, channel_id)
 
         @self.client.command(name='swan_usdc_faucet', help='Claim Swan USDC from the faucet')
