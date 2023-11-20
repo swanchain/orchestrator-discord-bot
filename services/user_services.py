@@ -52,12 +52,11 @@ class UserService:
             "type": "function"
         }]
 
-    async def _transfer(self, network,from_wallet_address, to_wallet_address, claimed_amount, is_test=False):
+    async def _transfer(self, network, token_name, from_wallet_address, to_wallet_address, claimed_amount, is_test=False):
         rpc_endpoint_key = f'{network}_{"TEST_" if is_test else ""}RPC_ENDPOINT'
         web3 = Web3(Web3.HTTPProvider(await get_config(rpc_endpoint_key)))
-        print(rpc_endpoint_key)
 
-        contract_key = f'{network}_{"TEST_" if is_test else ""}CONTRACT_ADDRESS'
+        contract_key = f'{token_name}_{"TEST_" if is_test else ""}CONTRACT_ADDRESS'
         contract_address = await get_config(contract_key)
         contract = web3.eth.contract(address=contract_address, abi=self.common_abi)
         if contract is None:
@@ -129,15 +128,15 @@ class UserService:
                 error_logger.error(f"Failed to insert transaction: {e}")
                 return False
 
-    async def transfer_and_record(self, discord_id, discord_name, network, from_wallet_address, to_wallet_address,
+    async def transfer_and_record(self, discord_id, discord_name, network, token_name, from_wallet_address, to_wallet_address,
                                   claimed_amount, token_symbol, is_test=False):
         web3 = Web3(Web3.HTTPProvider(await get_config(f'{network}_{"TEST_" if is_test else ""}RPC_ENDPOINT')))
-        if network == 'OPSWAN':
+        if token_name == 'OPSWAN' or token_name == 'POLYGON_USDC':
             claimed_amount = web3.to_wei(claimed_amount, 'mwei')
         else:
             claimed_amount = web3.to_wei(claimed_amount, 'ether')
 
-        tx_hash = await self._transfer(network, from_wallet_address, to_wallet_address, claimed_amount, is_test)
+        tx_hash = await self._transfer(network, token_name, from_wallet_address, to_wallet_address, claimed_amount, is_test)
         if not tx_hash:
             return None
 
