@@ -1,3 +1,5 @@
+import re
+
 import discord
 
 from log.logger import info_logger, error_logger
@@ -71,8 +73,12 @@ class BotController:
                 return
             to_wallet_address = ctx.message.content.split()[-1]
             if to_wallet_address == '' or not Web3.is_address(to_wallet_address):
+                await ctx.reply('Invalid wallet address, please try again.')
                 error_logger.error(f"Invalid wallet address: {to_wallet_address}")
-                await ctx.reply('Bot command must be in the format: $<TokenName>_faucet <wallet_address>')
+                return
+            if to_wallet_address.islower() or to_wallet_address.isupper():
+                await ctx.reply('We do not support wallet addresses that are all in lowercase or uppercase.')
+                error_logger.error(f"Unsupported wallet address format: {to_wallet_address}")
                 return
             await ctx.reply(f'Your claim is being processed. Please wait...')
             from_wallet_address = await get_config('FROM_WALLET_ADDRESS')
