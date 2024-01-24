@@ -50,14 +50,14 @@ class BotController:
 
         @self.client.command(name='swan_faucet', help='Claim tokens from the faucet')
         async def claim_swan(ctx):
-            await self._process_claim_request(ctx, 'SATURN', 'SWAN', True)
+            channel_id = await get_config('SATURN_CHANNEL_ID')
+            await self._process_claim_request(ctx, 'SATURN', 'SWAN', True, channel_id)
 
         # @self.client.command(name='swan_usdc_faucet', help='Claim tokens from the faucet')
         # async def claim_op(ctx):
         #     await self._process_claim_request(ctx, 'OPSWAN', 'OPSWAN_TEST_USDC', True)
     async def _process_claim_request(self, ctx, network, token_name, token_symbol, is_test=False, channel_id=None):
         async with self.semaphore:
-
             if channel_id is None:
                 error_logger.error(f"Channel id is not set")
                 await ctx.reply('Source error, please contact admin.')
