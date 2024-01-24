@@ -44,23 +44,20 @@ class BotController:
                 error_logger.error(f"Failed to get guild: {e}")
                 return
 
-        @self.client.command(name='lag_faucet', help='Claim LAG Token from the faucet')
-        async def claim_polygon(ctx):
-            channel_id = await get_config('LAG_CHANNEL_ID')
-            await self._process_claim_request(ctx, 'POLYGON', 'LAG', 'LAG', False, channel_id)
+        # @self.client.command(name='lag_faucet', help='Claim tokens from the faucet')
+        # async def claim_polygon(ctx):
+        #     await self._process_claim_request(ctx, 'POLYGON', 'LAG')
 
-        @self.client.command(name='pusdc_faucet', help='Claim Polygon USDC tokens from the faucet')
-        async def claim_polygon(ctx):
-            channel_id = await get_config('POLYGON_USDC_CHANNEL_ID')
-            await self._process_claim_request(ctx, 'POLYGON', 'POLYGON_USDC', 'POLYGON_TEST_USDC', False, channel_id)
+        @self.client.command(name='swan_faucet', help='Claim tokens from the faucet')
+        async def claim_swan(ctx):
+            await self._process_claim_request(ctx, 'SATURN', 'SWAN', True)
 
-        @self.client.command(name='swan_usdc_faucet', help='Claim Swan USDC from the faucet')
-        async def claim_op(ctx):
-            channel_id = await get_config('SWAN_TEST_CHANNEL_ID')
-            await self._process_claim_request(ctx, 'OPSWAN','OPSWAN', 'OPSWAN_TEST_USDC', True, channel_id)
-
+        # @self.client.command(name='swan_usdc_faucet', help='Claim tokens from the faucet')
+        # async def claim_op(ctx):
+        #     await self._process_claim_request(ctx, 'OPSWAN', 'OPSWAN_TEST_USDC', True)
     async def _process_claim_request(self, ctx, network, token_name, token_symbol, is_test=False, channel_id=None):
         async with self.semaphore:
+
             if channel_id is None:
                 error_logger.error(f"Channel id is not set")
                 await ctx.reply('Source error, please contact admin.')
