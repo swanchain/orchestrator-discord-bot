@@ -58,6 +58,7 @@ class UserService:
         print(await get_config(rpc_endpoint_key))
 
         contract_key = f'{token_name}_{"TEST_" if is_test else ""}CONTRACT_ADDRESS'
+        print(contract_key)
         contract_address = await get_config(contract_key)
         contract = web3.eth.contract(address=contract_address, abi=self.common_abi)
         if contract is None:
