@@ -42,17 +42,21 @@ class BotController:
                 error_logger.error(f"Failed to get guild: {e}")
                 return
 
-        @self.client.command(name='lag_faucet', help='Claim tokens from the faucet')
-        async def claim_polygon(ctx):
-            await self._process_claim_request(ctx, 'POLYGON', 'LAG')
+        # @self.client.command(name='lag_faucet', help='Claim tokens from the faucet')
+        # async def claim_polygon(ctx):
+        #     await self._process_claim_request(ctx, 'POLYGON', 'LAG')
 
-        @self.client.command(name='swan_usdc_faucet', help='Claim tokens from the faucet')
-        async def claim_op(ctx):
-            await self._process_claim_request(ctx, 'OPSWAN', 'OPSWAN_TEST_USDC', True)
+        @self.client.command(name='swan_faucet', help='Claim tokens from the faucet')
+        async def claim_swan(ctx):
+            await self._process_claim_request(ctx, 'SATURN', 'SWAN', True)
+
+        # @self.client.command(name='swan_usdc_faucet', help='Claim tokens from the faucet')
+        # async def claim_op(ctx):
+        #     await self._process_claim_request(ctx, 'OPSWAN', 'OPSWAN_TEST_USDC', True)
 
     async def _process_claim_request(self, ctx, network, token_symbol, is_test=False):
         async with self.semaphore:
-            channel_id = await get_config('CHANNEL_ID')
+            channel_id = await get_config(f'{network}_CHANNEL_ID')
             if ctx.channel.id != int(channel_id):
                 error_logger.error(f"Received invalid channel id: {ctx.channel.id}")
                 await ctx.reply('Invalid channel id')
