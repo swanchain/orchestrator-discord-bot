@@ -1,3 +1,5 @@
+import re
+
 import discord
 
 from log.logger import info_logger, error_logger
@@ -53,24 +55,33 @@ class BotController:
         # @self.client.command(name='swan_usdc_faucet', help='Claim tokens from the faucet')
         # async def claim_op(ctx):
         #     await self._process_claim_request(ctx, 'OPSWAN', 'OPSWAN_TEST_USDC', True)
-
-    async def _process_claim_request(self, ctx, network, token_symbol, is_test=False):
+    async def _process_claim_request(self, ctx, network, token_name, token_symbol, is_test=False, channel_id=None):
         async with self.semaphore:
-            channel_id = await get_config(f'{network}_CHANNEL_ID')
+
+            if channel_id is None:
+                error_logger.error(f"Channel id is not set")
+                await ctx.reply('Source error, please contact admin.')
+                return
             if ctx.channel.id != int(channel_id):
                 error_logger.error(f"Received invalid channel id: {ctx.channel.id}")
-                await ctx.reply('Invalid channel id')
+                await ctx.reply(
+                    'Invalid channel id, if you are trying to get the swan-test-usdc, please use usdc-faucet channel, '
+                    'if you are trying to get the lag token, please use lag-faucet channel. ')
                 return
             to_wallet_address = ctx.message.content.split()[-1]
             if to_wallet_address == '' or not Web3.is_address(to_wallet_address):
+                await ctx.reply('Invalid wallet address, please try again.')
                 error_logger.error(f"Invalid wallet address: {to_wallet_address}")
-                await ctx.reply('Bot command must be in the format: $faucet <wallet_address>')
+                return
+            if to_wallet_address.islower() or to_wallet_address.isupper():
+                await ctx.reply('We do not support wallet addresses that are all in lowercase or uppercase.')
+                error_logger.error(f"Unsupported wallet address format: {to_wallet_address}")
                 return
             await ctx.reply(f'Your claim is being processed. Please wait...')
             from_wallet_address = await get_config('FROM_WALLET_ADDRESS')
             claimed_amount = await get_config('CLAIMED_AMOUNT')
             info_logger.info(f'-- {ctx.author} is claiming {claimed_amount} {token_symbol} to {to_wallet_address}')
-            tx_hash = await self.user_service.transfer_and_record(ctx.author.id, ctx.author.name, network,
+            tx_hash = await self.user_service.transfer_and_record(ctx.author.id, ctx.author.name, network, token_name,
                                                                   from_wallet_address, to_wallet_address,
                                                                   int(claimed_amount), token_symbol, is_test)
             if tx_hash is None:
