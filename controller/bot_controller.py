@@ -44,18 +44,11 @@ class BotController:
                 error_logger.error(f"Failed to get guild: {e}")
                 return
 
-        # @self.client.command(name='lag_faucet', help='Claim tokens from the faucet')
-        # async def claim_polygon(ctx):
-        #     await self._process_claim_request(ctx, 'POLYGON', 'LAG')
-
         @self.client.command(name='swan_faucet', help='Claim tokens from the faucet')
         async def claim_swan(ctx):
             channel_id = await get_config('SATURN_CHANNEL_ID')
-            await self._process_claim_request(ctx, 'SATURN', 'SWAN', True, channel_id)
+            await self._process_claim_request(ctx, 'SATURN', 'SWAN', 'SWAN',True, channel_id)
 
-        # @self.client.command(name='swan_usdc_faucet', help='Claim tokens from the faucet')
-        # async def claim_op(ctx):
-        #     await self._process_claim_request(ctx, 'OPSWAN', 'OPSWAN_TEST_USDC', True)
     async def _process_claim_request(self, ctx, network, token_name, token_symbol, is_test=False, channel_id=None):
         async with self.semaphore:
             if channel_id is None:
