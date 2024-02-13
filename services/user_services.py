@@ -67,9 +67,9 @@ class UserService:
         if not web3.is_address(to_wallet_address) or not web3.is_address(from_wallet_address):
             error_logger.error(f'Invalid wallet address. From: {from_wallet_address}, To: {to_wallet_address}')
             return None
-        if not web3.is_connected():
-            error_logger.error(f'Web3 is not connected')
-            return None
+        # if not web3.is_connected():
+        #     error_logger.error(f'Web3 is not connected')
+        #     return None
 
         # check if the wallet has enough balance
         balance = contract.functions.balanceOf(from_wallet_address).call()
