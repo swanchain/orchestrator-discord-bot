@@ -18,6 +18,7 @@ async def main():
     intents = discord.Intents.all()
     client = Bot(command_prefix="$", intents=intents)
     bot_token = await get_config(key='BOT_TOKEN')
+    print(bot_token)
     if bot_token is None or not isinstance(bot_token, str):
         error_logger.error(f"Bot token is not set or invalid")
         exit(1)

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import requests
 from web3 import Web3
 from model.config import get_config
 from log.logger import info_logger, error_logger
@@ -108,6 +109,9 @@ class UserService:
             txn_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
         except Exception as e:
             error_logger.error(f"Failed to transfer to {to_wallet_address} at {datetime.utcnow()}, error: {e}")
+            return None
+        except requests.exceptions.ConnectTimeout:
+            error_logger.error('Connection to the RPC endpoint timed out.')
             return None
 
         info_logger.info(f'-- Transaction successful with transaction hash: {tx_hash.hex()} at {datetime.utcnow()}')
